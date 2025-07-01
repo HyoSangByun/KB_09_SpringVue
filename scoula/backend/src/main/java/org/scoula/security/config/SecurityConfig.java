@@ -49,7 +49,6 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-
     private final UserDetailsService userDetailsService;   // CustomUserDetailsService 주입
 
     // JWT 인증 필터
@@ -66,9 +65,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter;
 
-
     /**
      * 비밀번호 암호화기 Bean 등록
+     * BCrypt 해시 함수를 사용하여 안전한 비밀번호 저장
+     *
      * @return BCryptPasswordEncoder 인스턴스
      */
     @Bean
@@ -79,6 +79,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 한글 문자 인코딩 필터 생성
+     * POST 요청시 한글 깨짐 현상 방지
+     * Spring Security Filter Chain에서 CsrfFilter보다 먼저 실행되어야 함
+     *
      * @return CharacterEncodingFilter 인스턴스
      */
     public CharacterEncodingFilter encodingFilter() {
@@ -89,63 +92,72 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
 
-    // AuthenticationManager 빈 등록 - JWT 토큰 인증에서 필요
-    @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
-    }
-
-
     /**
-     * HTTP 보안 설정 메서드 (웹 애플리케이션의 보안 정책을 상세하게 구성)
+     * HTTP 보안 설정 메서드
+     * 웹 애플리케이션의 보안 정책을 상세하게 구성
+     *
      * @param http HttpSecurity 객체
      * @throws Exception 설정 중 발생할 수 있는 예외
      */
     @Override
     public void configure(HttpSecurity http) throws Exception {
-
+        // // 1. 문자 인코딩 필터를 CSRF 필터보다 먼저 실행
+        // CSRF 필터보다 앞에 인코딩 필터 추가
+        // - CSRF 필터는 Spring Security 환경에서 기본적으로 활성화 되어있음!
         http
-                .addFilterBefore(encodingFilter(), CsrfFilter.class)// 한글 인코딩 필터 설정
-                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // 인증 에러 필터
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Jwt 인증필터
-                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)  // API 로그인 인증 필터
+                // 문자 인증 필터
+                .addFilterBefore(encodingFilter(), CsrfFilter.class)
+                // 인증 에러 필터
+                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
+                // JWT 인증 필터
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // API 로그인 인증 필터
+                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 // 예외 처리 설정
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint)  // 401 에러 처리
                 .accessDeniedHandler(accessDeniedHandler);           // 403 에러 처리
 
-
         //  HTTP 보안 설정
-        http.httpBasic().disable()      // 기본 HTTP 인증 비활성화
+        http
+                .httpBasic().disable()      // 기본 HTTP 인증 비활성화
                 .csrf().disable()           // CSRF 보호 비활성화 (REST API에서는 불필요)
                 .formLogin().disable()      // 폼 로그인 비활성화 (JSON 기반 API 사용)
                 .sessionManagement()        // 세션 관리 설정
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
+/*    http
+        .authorizeRequests() // 경로별 접근 권한 설정
+        .antMatchers(HttpMethod.OPTIONS).permitAll()  //  org.springframework.http.HttpMethod
+        .antMatchers("/api/security/all").permitAll()                    // 모두 허용
+        .antMatchers("/api/security/member").access("hasRole('ROLE_MEMBER')")  // ROLE_MEMBER 이상
+        .antMatchers("/api/security/admin").access("hasRole('ROLE_ADMIN')")    // ROLE_ADMIN 이상
+        .anyRequest().authenticated(); // 나머지는 로그인 필요*/
 
+        // 인증 요구 경로 설정
         http
                 .authorizeRequests() // 경로별 접근 권한 설정
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .anyRequest().authenticated(); // 현재는 모든 접근 허용 (개발 단계)
+
+                //.anyRequest().authenticated(); // 현재는 모든 접근 허용 (개발 단계) <- 삭제
+
+                // 🌐 회원 관련 공개 API (인증 불필요)
+                .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()     // ID 중복 체크
+                .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
+                .antMatchers(HttpMethod.GET, "/api/member/*/avatar").permitAll()            // 아바타 이미지
+
+                // 🔒 회원 관련 인증 필요 API
+                .antMatchers(HttpMethod.PUT, "/api/member/**").authenticated() // 회원 정보 수정, 비밀번호 변경
+
+                .anyRequest().permitAll(); // 나머지 허용
+
     }
 
-
-    /**
-     * 인증 관리자 설정 메서드
-     * 사용자 인증 방식과 비밀번호 암호화 방식을 설정
-     * @param auth AuthenticationManagerBuilder 객체
-     * @throws Exception 설정 중 발생할 수 있는 예외
-     */
-    // Spring Security에서 인증 방식과 사용자 정보를 어떻게 처리할지 정의
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        log.info("configure .........................................");
-
-        // UserDetailsService와 PasswordEncoder 설정
-        auth.userDetailsService(userDetailsService)         // 커스텀 서비스 사용
-                .passwordEncoder(passwordEncoder());        // BCrypt 암호화 사용
-
+    // AuthenticationManager 빈 등록 - JWT 토큰 인증에서 필요
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
     }
 
 
@@ -170,11 +182,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers(
                 "/assets/**",      // 정적 리소스
                 "/*",              // 루트 경로의 파일들
-                "/api/member/**",   // 회원 관련 공개 API
+                // "/api/member/**",   // 회원 관련 공개 API <- 삭제
 
                 // Swagger 관련 URL은 보안에서 제외
                 "/swagger-ui.html", "/webjars/**",
                 "/swagger-resources/**", "/v2/api-docs"
         );
     }
+
+
+    /**
+     * 인증 관리자 설정 메서드
+     * 사용자 인증 방식과 비밀번호 암호화 방식을 설정
+     * (Spring Security에서 인증 방식과 사용자 정보를 어떻게 처리할지 정의)
+
+     * @param auth AuthenticationManagerBuilder 객체
+     * @throws Exception 설정 중 발생할 수 있는 예외
+     */
+    //
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        log.info("configure .........................................");
+
+        // UserDetailsService와 PasswordEncoder 설정
+        auth.userDetailsService(userDetailsService)         // 커스텀 서비스 사용
+                .passwordEncoder(passwordEncoder());        // BCrypt 암호화 사용
+    }
+
 }

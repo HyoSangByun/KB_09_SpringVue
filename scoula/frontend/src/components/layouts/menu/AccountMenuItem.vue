@@ -1,6 +1,11 @@
 <script setup>
+import { useAuthStore } from "@/stores/auth";
+import { computed } from "vue";
 const props = defineProps({ username: String });
-const avatar = `/api/member/${props.username}/avatar`; // 동적 아바타 생성
+
+// const avatar = `/api/member/${props.username}/avatar/${}`;
+const auth = useAuthStore();
+const avatar = computed(() => auth.avatarUrl);
 </script>
 
 <template>
@@ -11,3 +16,4 @@ const avatar = `/api/member/${props.username}/avatar`; // 동적 아바타 생�
     </router-link>
   </li>
 </template>
+<style></style>

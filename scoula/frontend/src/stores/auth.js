@@ -1,7 +1,6 @@
-import { ref, computed } from "vue";
+import { ref, computed, reactive } from "vue";
 import { defineStore } from "pinia";
-
-import axios from "axios"; // axios 임포트 // <- 추가
+import axios from "axios";
 
 // 초기 상태 템플릿
 const initState = {
@@ -11,26 +10,37 @@ const initState = {
     email: "", // 이메일
     roles: [], // 권한 목록
   },
+  avatarTimestamp: Date.now(), // 아바타 이미지 경로에 추가할 쿼리 스트링 값
 };
 
 // 스토어 정의
 export const useAuthStore = defineStore("auth", () => {
-  const state = ref({ ...initState });
+  const state = ref({ ...initState }); // 위의 initState와 모양만 같ㅌ고 내용은 다르다
 
   // Computed 속성들
   const isLogin = computed(() => !!state.value.user.username); // 로그인 여부
   const username = computed(() => state.value.user.username); // 사용자명
   const email = computed(() => state.value.user.email); // 이메일
 
+  // 로그인 여부에 따라 avatar 이미지 다운로드 주소 변경
+  const avatarUrl = computed(() =>
+    state.value.user.username
+      ? `/api/member/${state.value.user.username}/avatar?t=${state.value.avatarTimestamp}`
+      : null
+  );
+
+  // 아바타 업데이트 액션 추가
+  const updateAvatar = () => {
+    state.value.avatarTimestamp = Date.now();
+    localStorage.setItem.apply("auth", JSON.stringify(state.value));
+  };
+
   // isLogin 사용자명 존재 여부로 로그인 상태 판단
   // username, email 반응형 데이터로 컴포넌트에서 자동 업데이트
-  // !! 연산자로 boolean 타입 변환 보장
-
-  // 액션 메서드 작성 영역
+  // !! 연산자로 확실한 boolean 타입 변환 보장 -> null등 이 아니라 확실히 boolean임을 명시
 
   // 로그인 액션
   const login = async (member) => {
-    // 임시 테스트용 로그인 (실제 API 호출 전) <- 주석 처리
     // state.value.token = 'test token';
     // state.value.user = {
     //   username: member.username,
@@ -51,6 +61,9 @@ export const useAuthStore = defineStore("auth", () => {
     state.value = { ...initState }; // 상태를 초기값으로 리셋
   };
 
+  // 토큰 얻어오기 액션션
+  const getToken = () => state.value.token;
+
   // 상태 복원 로직
   // - localStorage에 인증 정보(auth)가 저장되어 있을 경우 상태 복원
   const load = () => {
@@ -59,6 +72,12 @@ export const useAuthStore = defineStore("auth", () => {
       state.value = JSON.parse(auth); // JSON 문자열을 객체로 변환
       console.log(state.value);
     }
+  };
+
+  // 프로필 변경 후 로컬 상태 동기화 액션
+  const changeProfile = (member) => {
+    state.value.user.email = member.email; // 이메일 업데이트
+    localStorage.setItem("auth", JSON.stringify(state.value)); // 로컬스토리지 동기화
   };
 
   // 스토어 초기화 시 자동 실행
@@ -72,6 +91,11 @@ export const useAuthStore = defineStore("auth", () => {
     isLogin,
     login,
     logout,
-    getToken: () => state.value.token,
+    getToken,
+    changeProfile,
+
+    // avatar 관련부분 리텅
+    avatarUrl,
+    updateAvatar,
   };
 });
