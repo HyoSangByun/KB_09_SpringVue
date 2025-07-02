@@ -19,6 +19,17 @@
 <!--        select * from tbl_board where no = #{no}-->
 <!--    </select>-->
 
+    <!-- 게시글과 첨부파일을 조인하여 조회 -->
+    <select id="get" resultMap="boardMap">
+        SELECT b.*,
+               a.no as ano, a.bno, a.filename, a.path,
+               a.content_type, a.size, a.reg_date as a_reg_date
+        FROM tbl_board b
+                 LEFT OUTER JOIN tbl_board_attachment a ON b.no = a.bno
+        WHERE b.no = #{no}
+        ORDER BY filename
+    </select>
+
 
     <!-- Create(등록) 기능 구현 -->
 <!--    <insert id="create">-->
@@ -84,7 +95,6 @@
         WHERE no = #{no}
     </delete>
 
-    <!-- 첨부파일 ResultMap 정의 -->
     <resultMap id="attachmentMap" type="org.scoula.board.domain.BoardAttachmentVO">
         <id column="ano" property="no"/>
         <result column="bno" property="bno"/>
@@ -95,7 +105,6 @@
         <result column="a_reg_date" property="regDate"/>
     </resultMap>
 
-    <!-- 게시글 + 첨부파일 통합 ResultMap -->
     <resultMap id="boardMap" type="org.scoula.board.domain.BoardVO">
         <id column="no" property="no"/>
         <result column="title" property="title"/>
@@ -103,20 +112,8 @@
         <result column="writer" property="writer"/>
         <result column="reg_date" property="regDate"/>
         <result column="update_date" property="updateDate"/>
-
-        <!-- 첨부파일 컬렉션 매핑 -->
         <collection property="attaches" resultMap="attachmentMap"/>
     </resultMap>
 
-    <!-- 게시글과 첨부파일을 조인하여 조회 -->
-    <select id="get" resultMap="boardMap">
-        SELECT b.*,
-               a.no as ano, a.bno, a.filename, a.path,
-               a.content_type, a.size, a.reg_date as a_reg_date
-        FROM tbl_board b
-                 LEFT OUTER JOIN tbl_board_attachment a ON b.no = a.bno
-        WHERE b.no = #{no}
-        ORDER BY filename
-    </select>
 
 </mapper>

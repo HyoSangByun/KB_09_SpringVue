@@ -21,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor     // final 필드 생성자 주입
 public class BoardServiceImpl implements BoardService {
 
-    private final BoardMapper boardMapper;  // Mapper 의존성 주입
+    private final BoardMapper mapper;  // Mapper 의존성 주입
 
     // 파일 저장될 디렉토리 경로
     private final static String BASE_DIR = "c:/upload/board";
@@ -31,7 +31,7 @@ public class BoardServiceImpl implements BoardService {
     public List<BoardDTO> getList() {
         log.info("getList..........");
 
-        return boardMapper.getList().stream()    // List<BoardVO> → Stream<BoardVO>
+        return mapper.getList().stream()    // List<BoardVO> → Stream<BoardVO>
                 .map(BoardDTO::of)               // Stream<BoardVO> → Stream<BoardDTO>
                 .toList();                       // Stream<BoardDTO> → List<BoardDTO>
     }
@@ -41,7 +41,7 @@ public class BoardServiceImpl implements BoardService {
     public BoardDTO get(Long no) {
         log.info("get......" + no);
 
-        BoardVO vo = boardMapper.get(no);                // DB에서 VO 조회
+        BoardVO vo = mapper.get(no);                // DB에서 VO 조회
         BoardDTO dto = BoardDTO.of(vo);                 // VO → DTO 변환
 
         return Optional.ofNullable(dto)                 // null 안전성 처리
@@ -60,7 +60,7 @@ public class BoardServiceImpl implements BoardService {
 
         // 1. 게시글 등록
         BoardVO vo = board.toVo();         // DTO → VO 변환
-        boardMapper.create(vo);            // DB에 저장
+        mapper.create(vo);            // DB에 저장
 
         // 2. 첨부파일 처리
         List<MultipartFile> files = board.getFiles();
@@ -77,7 +77,13 @@ public class BoardServiceImpl implements BoardService {
     public BoardDTO update(BoardDTO board) {
         log.info("update......" + board);
 
-        boardMapper.update(board.toVo());  // 게시글 수정 수행
+        mapper.update(board.toVo());  // 게시글 수정 수행
+
+        // 파일 업로드 처리
+        List<MultipartFile> files = board.getFiles();
+        if(files != null && !files.isEmpty()) {
+            upload(board.getNo(), files);
+        }
 
         // 수정된 게시글 정보를 반환
         return get(board.getNo());
@@ -93,7 +99,7 @@ public class BoardServiceImpl implements BoardService {
         BoardDTO board = get(no);
 
         // 실제 삭제 수행
-        boardMapper.delete(no);
+        mapper.delete(no);
 
         // 삭제된 게시글 정보를 반환
         return board;
@@ -106,13 +112,13 @@ public class BoardServiceImpl implements BoardService {
     // 첨부파일 단일 조회
     @Override
     public BoardAttachmentVO getAttachment(Long no) {
-        return boardMapper.getAttachment(no);
+        return mapper.getAttachment(no);
     }
 
     // 첨부파일 삭제
     @Override
     public boolean deleteAttachment(Long no) {
-        return boardMapper.deleteAttachment(no) == 1;
+        return mapper.deleteAttachment(no) == 1;
     }
 
 
@@ -132,7 +138,7 @@ public class BoardServiceImpl implements BoardService {
 
                 // 첨부파일 정보를 DB에 저장
                 BoardAttachmentVO attach = BoardAttachmentVO.of(part, bno, uploadPath);
-                boardMapper.createAttachment(attach);
+                mapper.createAttachment(attach);
 
             } catch (IOException e) {
                 // @Transactional이 감지할 수 있도록 RuntimeException으로 변환

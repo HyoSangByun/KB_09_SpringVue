@@ -44,5 +44,6 @@ public interface BoardService {
 
     // 첨부파일 관련 메서드 추가
     public BoardAttachmentVO getAttachment(Long no);
+
     public boolean deleteAttachment(Long no);
 }
