@@ -6,6 +6,8 @@ import org.scoula.board.domain.BoardAttachmentVO;
 import org.scoula.board.domain.BoardVO;
 import org.scoula.board.dto.BoardDTO;
 import org.scoula.board.mapper.BoardMapper;
+import org.scoula.common.pagination.Page;
+import org.scoula.common.pagination.PageRequest;
 import org.scoula.common.util.UploadFiles;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +22,18 @@ import java.util.Optional;
 @Service                     // Service 계층 컴포넌트
 @RequiredArgsConstructor     // final 필드 생성자 주입
 public class BoardServiceImpl implements BoardService {
+    // 파일 저장될 디렉토리 경로
+    private final static String BASE_DIR = "c:/upload/board";
 
     private final BoardMapper mapper;  // Mapper 의존성 주입
 
-    // 파일 저장될 디렉토리 경로
-    private final static String BASE_DIR = "c:/upload/board";
+    @Override
+    public Page<BoardDTO> getPage(PageRequest pageRequest) {
+        List<BoardVO> boards = mapper.getPage(pageRequest);
+        int totalCount = mapper.getTotalCount();
+        return Page.of(pageRequest, totalCount,
+                boards.stream().map(BoardDTO::of).toList());
+    }
 
     // 목록 조회 서비스
     @Override

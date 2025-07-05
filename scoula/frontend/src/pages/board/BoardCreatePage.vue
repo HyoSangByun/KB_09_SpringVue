@@ -48,7 +48,10 @@
       >
         <i class="fa-solid fa-check"></i> 확인
       </button>
-      <router-link class="btn btn-primary" :to="{ name: 'board/list' }">
+      <router-link
+        class="btn btn-primary"
+        :to="{ name: 'board/list', query: cr.query }"
+      >
         <i class="fa-solid fa-list"></i> 목록
       </router-link>
     </div>
