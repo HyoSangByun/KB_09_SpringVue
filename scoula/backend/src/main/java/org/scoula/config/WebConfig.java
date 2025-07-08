@@ -55,14 +55,14 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
      * 🔧 서블릿 필터 설정 (HTTP 요청/응답 전처리)
      * - DispatcherServlet으로 전달되기 전에 HTTP 요청/응답을 전처리할 필터들을 등록하고 설정
      */
-    protected Filter[] getServletFilters() {
-        // UTF-8 문자 인코딩 필터 생성 및 설정
-        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
-        characterEncodingFilter.setEncoding("UTF-8");       // 요청 데이터 UTF-8 디코딩
-        characterEncodingFilter.setForceEncoding(true);     // 응답 데이터도 UTF-8 강제 인코딩
-
-        return new Filter[]{characterEncodingFilter};
-    }
+//    protected Filter[] getServletFilters() {
+//        // UTF-8 문자 인코딩 필터 생성 및 설정
+//        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+//        characterEncodingFilter.setEncoding("UTF-8");       // 요청 데이터 UTF-8 디코딩
+//        characterEncodingFilter.setForceEncoding(true);     // 응답 데이터도 UTF-8 강제 인코딩
+//
+//        return new Filter[]{characterEncodingFilter};
+//    }
 
     @Override
     protected void customizeRegistration(ServletRegistration.Dynamic registration) {

@@ -14,6 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
@@ -27,12 +28,15 @@ import javax.sql.DataSource;
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {
         "org.scoula.board.mapper",
-        "org.scoula.member.mapper"  // 회원 매퍼 스캔
+        "org.scoula.member.mapper",  // 회원 매퍼 스캔
+        "org.scoula.travel.mapper"   // 여행지 매퍼 스캔
 })
 @ComponentScan(basePackages = {
         "org.scoula.board.service",
-        "org.scoula.member.service"  // 회원 서비스 스캔
+        "org.scoula.member.service",  // 회원 서비스 스캔
+        "org.scoula.travel.service"   // 여행지 서비스 스캔
 })
+@EnableTransactionManagement // @Transactional 활성화
 public class RootConfig {
 
     // 현재는 기본 설정만 있는 상태
