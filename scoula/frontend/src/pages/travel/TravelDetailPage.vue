@@ -18,6 +18,7 @@
     <!-- 지도 위치 (추후 구현) -->
     <div class="my-5">
       <!-- 지도 컴포넌트 영역 -->
+      <travel-map :title="travel.title" :address="travel.address" />
     </div>
 
     <!-- 네비게이션 버튼 -->
@@ -32,6 +33,7 @@
 <script setup>
 import TravelHeader from "@/components/travel/TravelHeader.vue";
 import TravelImages from "@/components/travel/TravelImages.vue";
+import TravelMap from "@/components/travel/TravelMap.vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/api/travelApi";
 import { ref } from "vue";

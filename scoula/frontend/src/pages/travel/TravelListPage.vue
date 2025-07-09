@@ -54,7 +54,7 @@ const cr = useRoute();
 const router = useRouter();
 
 // 페이지 데이터 및 계산된 속성
-const page = ref({});
+const page = ref({ list: [], totalCount: 0 });
 const travels = computed(() => page.value.list);
 
 // 페이지네이션 요청 파라미터
