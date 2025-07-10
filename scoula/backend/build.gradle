@@ -76,7 +76,7 @@ dependencies {
     // Lombok - 보일러플레이트 코드 자동 생성 (@Getter, @Setter, @ToString 등)
     // 최신 버전으로 업데이트 (Java 17+ 지원 개선)
     compileOnly "org.projectlombok:lombok:${lombokVersion}"                    // 컴파일 시에만 필요
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"            // 어노테이션 처리기
+//    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"            // 어노테이션 처리기
 
     // ===== JSON 처리 =====
     // Jackson - JSON 직렬화/역직렬화 라이브러리 (Spring 5.3.x와 호환되는 최신 버전)
