@@ -140,5 +140,5 @@ dependencies {
 }
 // 테스트 실행 설정
 test {
-    useJUnitPlatform()  // JUnit 5 플랫폼 사용하여 테스트 실행
+//    useJUnitPlatform()  // JUnit 5 플랫폼 사용하여 테스트 실행
 }
