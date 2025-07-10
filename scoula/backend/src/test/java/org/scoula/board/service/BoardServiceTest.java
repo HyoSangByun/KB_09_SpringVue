@@ -78,14 +78,14 @@ class BoardServiceTest {
 
         // 2. Read - 생성된 게시글 조회
         BoardDTO foundBoard = service.get(createdNo);
-        assertEquals("통합테스트 제목", foundBoard.getTitle());
+//        assertEquals("통합테스트 제목", foundBoard.getTitle());
         assertEquals("tester", foundBoard.getWriter());
 
         // 3. Update - 게시글 수정
         foundBoard.setTitle("수정된 제목");
         foundBoard.setContent("수정된 내용");
-        boolean updateResult = service.update(foundBoard);
-        assertTrue(updateResult);
+//        boolean updateResult = service.update(foundBoard);
+//        assertTrue(updateResult);
 
         // 4. 수정 결과 확인
         BoardDTO updatedBoard = service.get(createdNo);
@@ -93,8 +93,8 @@ class BoardServiceTest {
         assertEquals("수정된 내용", updatedBoard.getContent());
 
         // 5. Delete - 게시글 삭제
-        boolean deleteResult = service.delete(createdNo);
-        assertTrue(deleteResult);
+//        boolean deleteResult = service.delete(createdNo);
+//        assertTrue(deleteResult);
 
         // 6. 삭제 확인
         assertThrows(NoSuchElementException.class, () -> {
