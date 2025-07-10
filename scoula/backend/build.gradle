@@ -89,7 +89,7 @@ dependencies {
 
     // 테스트에서도 Lombok 사용 (최신 버전)
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+//    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     // JUnit 5 - 현대적인 Java 테스팅 프레임워크 (5.13.1 - 최신 안정 버전)
     // 새로운 기능과 버그 수정, 성능 개선 포함
